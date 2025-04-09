@@ -19,6 +19,7 @@ const Dashboard = () => {
 
   const [isLoading, setIsLoading] = useState(true);
   const [recentActivity, setRecentActivity] = useState([]);
+  const [latestScanData, setLatestScanData] = useState(null);
 
   useEffect(() => {
     // Fetch dashboard data from API
@@ -36,6 +37,20 @@ const Dashboard = () => {
         const sortedScans = scansData.sort(
           (a, b) => new Date(b.timestamp) - new Date(a.timestamp)
         );
+
+        // Set the latest scan data for the chart
+        if (sortedScans.length > 0) {
+          setLatestScanData(sortedScans[0]);
+        } else {
+          // Generate sample data if no scans available
+          setLatestScanData({
+            readings: Array.from({ length: 100 }, (_, i) => ({
+              frequency: 470 + i * 3,
+              power: Math.random() * 60 - 120,
+            })),
+            timestamp: new Date().toISOString(),
+          });
+        }
 
         // Create recent activity from scans
         const activity = sortedScans.slice(0, 4).map((scan) => {
@@ -91,7 +106,8 @@ const Dashboard = () => {
 
             // Count active/vacant frequencies based on threshold
             scan.readings.forEach((reading) => {
-              if (reading.Power > -110) {
+              const power = reading.Power || reading.power;
+              if (power > -110) {
                 activeFreqs++;
               } else {
                 vacantFreqs++;
@@ -117,6 +133,15 @@ const Dashboard = () => {
           activeFrequencies: 0,
           vacantFrequencies: 0,
           locations: 0,
+        });
+
+        // Generate sample data for the chart
+        setLatestScanData({
+          readings: Array.from({ length: 100 }, (_, i) => ({
+            frequency: 470 + i * 3,
+            power: Math.random() * 60 - 120,
+          })),
+          timestamp: new Date().toISOString(),
         });
       } finally {
         setIsLoading(false);
@@ -225,7 +250,15 @@ const Dashboard = () => {
             </p>
           </div>
           <div className="px-6 h-80">
-            <SpectrumChart apiBaseUrl={API_BASE_URL} />
+            {latestScanData && latestScanData.readings ? (
+              <SpectrumChart data={latestScanData.readings} threshold={-110} />
+            ) : (
+              <div className="flex items-center justify-center h-full">
+                <div className="text-center text-gray-500">
+                  <p>No spectrum data available</p>
+                </div>
+              </div>
+            )}
           </div>
           <div className="p-6 border-t border-gray-200">
             <Link
