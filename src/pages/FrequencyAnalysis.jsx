@@ -8,13 +8,6 @@ import {
   CardHeader,
   CardTitle,
 } from "../components/ui/card";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "../components/ui/select";
 import { Button } from "../components/ui/button";
 import {
   Tabs,
@@ -63,7 +56,7 @@ const FrequencyAnalysis = () => {
     setIsLoading(true);
     try {
       const response = await fetch(
-        `${API_BASE_URL}/analysis/spectrum-usage?location_id=${location}`
+        `${API_BASE_URL}/analysis/spectrum-usage?location_id=${location}&time_range=${timeRange}`
       );
       if (!response.ok) {
         throw new Error("Failed to fetch analysis data");
@@ -88,12 +81,23 @@ const FrequencyAnalysis = () => {
     }
   };
 
-  // Run analysis when location changes
+  // Run analysis when location or timeRange changes
   useEffect(() => {
     if (location) {
       runAnalysis();
     }
-  }, [location]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location, timeRange]);
+
+  // Handle location change
+  const handleLocationChange = (e) => {
+    setLocation(e.target.value);
+  };
+
+  // Handle time range change
+  const handleTimeRangeChange = (e) => {
+    setTimeRange(e.target.value);
+  };
 
   return (
     <div className="space-y-6">
@@ -114,37 +118,84 @@ const FrequencyAnalysis = () => {
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
             <div>
-              <label className="text-sm font-medium mb-1 block">Location</label>
-              <Select value={location} onValueChange={setLocation}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select location" />
-                </SelectTrigger>
-                <SelectContent>
+              <label
+                htmlFor="location-select"
+                className="text-sm font-medium mb-1 block"
+              >
+                Location
+              </label>
+              <div className="relative">
+                <select
+                  id="location-select"
+                  value={location}
+                  onChange={handleLocationChange}
+                  disabled={isLoading}
+                  className="w-full h-10 px-3 py-2 rounded-md border border-gray-300 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-transparent"
+                >
+                  <option value="" disabled>
+                    Select location
+                  </option>
                   {locations.map((loc) => (
-                    <SelectItem key={loc._id} value={loc._id}>
+                    <option key={loc._id} value={loc._id}>
                       {loc.name}
-                    </SelectItem>
+                    </option>
                   ))}
-                  <SelectItem value="all">All Locations</SelectItem>
-                </SelectContent>
-              </Select>
+                  <option value="all">All Locations</option>
+                </select>
+                <div className="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
+                  <svg
+                    className="h-5 w-5 text-gray-400"
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                    aria-hidden="true"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                </div>
+              </div>
             </div>
 
             <div>
-              <label className="text-sm font-medium mb-1 block">
+              <label
+                htmlFor="time-range-select"
+                className="text-sm font-medium mb-1 block"
+              >
                 Time Range
               </label>
-              <Select value={timeRange} onValueChange={setTimeRange}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select time range" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="day">Last 24 Hours</SelectItem>
-                  <SelectItem value="week">Last 7 Days</SelectItem>
-                  <SelectItem value="month">Last 30 Days</SelectItem>
-                  <SelectItem value="custom">Custom Range</SelectItem>
-                </SelectContent>
-              </Select>
+              <div className="relative">
+                <select
+                  id="time-range-select"
+                  value={timeRange}
+                  onChange={handleTimeRangeChange}
+                  disabled={isLoading}
+                  className="w-full h-10 px-3 py-2 rounded-md border border-gray-300 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-transparent"
+                >
+                  <option value="day">Last 24 Hours</option>
+                  <option value="week">Last 7 Days</option>
+                  <option value="month">Last 30 Days</option>
+                  <option value="custom">Custom Range</option>
+                </select>
+                <div className="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
+                  <svg
+                    className="h-5 w-5 text-gray-400"
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                    aria-hidden="true"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                </div>
+              </div>
             </div>
 
             <div className="flex items-end">
